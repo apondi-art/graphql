@@ -41,7 +41,7 @@ export async function getUserInfo() {
 
   const payload = decodeJWT(token); // this gives you the user's login
   if (!payload?.sub) throw new Error("Failed to read user info from token. Please log in again");
-  
+
   const userId = parseInt(payload.sub);
 
   const query = `
@@ -68,15 +68,15 @@ export async function getUserInfo() {
 
 // ✅ Get XP transactions for the current user
 export async function getXpTransactions() {
-    const token = getToken();
-    if (!token) throw new Error("You are not logged in. Please log in to continue");
-    
-    const payload = decodeJWT(token);
-    if (!payload?.sub) throw new Error("Failed to read user info from token. Please log in again");
-    
-    const userId = parseInt(payload.sub);
+  const token = getToken();
+  if (!token) throw new Error("You are not logged in. Please log in to continue");
 
-    const query = `
+  const payload = decodeJWT(token);
+  if (!payload?.sub) throw new Error("Failed to read user info from token. Please log in again");
+
+  const userId = parseInt(payload.sub);
+
+  const query = `
     query($userId: Int!) {
       transaction(
         where: {
@@ -93,22 +93,22 @@ export async function getXpTransactions() {
     }
   `;
 
-    const variables = { userId };
-    const data = await fetchGraphQL(query, variables);
-    return data.transaction;
+  const variables = { userId };
+  const data = await fetchGraphQL(query, variables);
+  return data.transaction;
 }
 
 // ✅ Get audit ratio for the current user
 export async function getAuditRatio() {
-    const token = getToken();
-    if (!token) throw new Error("You are not logged in. Please log in to continue");
-    
-    const payload = decodeJWT(token);
-    if (!payload?.sub) throw new Error("Failed to read user info from token. Please log in again");
-    
-    const userId = parseInt(payload.sub);
+  const token = getToken();
+  if (!token) throw new Error("You are not logged in. Please log in to continue");
 
-    const query = `
+  const payload = decodeJWT(token);
+  if (!payload?.sub) throw new Error("Failed to read user info from token. Please log in again");
+
+  const userId = parseInt(payload.sub);
+
+  const query = `
     query($userId: Int!) {
       up: transaction_aggregate(
         where: {
@@ -133,34 +133,34 @@ export async function getAuditRatio() {
     }
   `;
 
-    const variables = { userId };
-    const data = await fetchGraphQL(query, variables);
+  const variables = { userId };
+  const data = await fetchGraphQL(query, variables);
 
-    return {
-        up: data.up.aggregate.count,
-        down: data.down.aggregate.count
-    };
+  return {
+    up: data.up.aggregate.count,
+    down: data.down.aggregate.count
+  };
 }
 
 // ✅ Get project grades for the current user
 export async function getProjectGrades() {
-    const token = getToken();
-    if (!token) throw new Error("You are not logged in. Please log in to continue");
-    
-    const payload = decodeJWT(token);
-    if (!payload?.sub) throw new Error("Failed to read user info from token. Please log in again");
-    
-    const userId = parseInt(payload.sub);
+  const token = getToken();
+  if (!token) throw new Error("You are not logged in. Please log in to continue");
 
-    const query = `
+  const payload = decodeJWT(token);
+  if (!payload?.sub) throw new Error("Failed to read user info from token. Please log in again");
+
+  const userId = parseInt(payload.sub);
+
+  const query = `
     query($userId: Int!) {
-      result(
+      progress(
         where: {
-          _and: [
+          
             { type: { _eq: "project" } },
             { grade: { _gte: 0 } },
             { userId: { _eq: $userId } }
-          ]
+          
         },
         order_by: { createdAt: asc }
       ) {
@@ -171,14 +171,14 @@ export async function getProjectGrades() {
     }
   `;
 
-    const variables = { userId };
-    const data = await fetchGraphQL(query, variables);
-    return data.result;
+  const variables = { userId };
+  const data = await fetchGraphQL(query, variables);
+  return data.result;
 }
 
 // ✅ Get object names for projects/exercises (this is already general)
 export async function getObjectName(objectId) {
-    const query = `
+  const query = `
     query GetObjectName($objectId: Int!) {
       object(where: { id: { _eq: $objectId } }) {
         name
@@ -187,6 +187,6 @@ export async function getObjectName(objectId) {
     }
   `;
 
-    const data = await fetchGraphQL(query, { objectId });
-    return data.object[0];
+  const data = await fetchGraphQL(query, { objectId });
+  return data.object[0];
 }
