@@ -13,11 +13,11 @@ import {
   getProjectGrades
 } from './api.js';
 
-// import { 
-//   generateXpChart, 
-//   generateAuditChart, 
-//   generateGradesChart 
-// } from './charts.js';
+import { 
+  generateXpChart, 
+  generateAuditChart, 
+  generateGradesChart 
+} from './charts.js';
 
 // DOM Elements
 const loginSection = document.getElementById('login-section');
@@ -43,7 +43,11 @@ async function initApp() {
 // Load and display profile data
 async function loadProfileData() {
   try {
-    profileSection.innerHTML = '<p>Loading profile data...</p>';
+    // Show loading state without destroying the DOM structure
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.className = 'loading-indicator';
+    loadingIndicator.textContent = 'Loading profile data...';
+    profileSection.prepend(loadingIndicator);
 
     const [userInfo, xpData, auditData, gradesData] = await Promise.all([
       getUserInfo().catch(err => { throw new Error(`User info: ${err.message}`); }),
@@ -52,62 +56,62 @@ async function loadProfileData() {
       getProjectGrades().catch(err => { throw new Error(`Grades data: ${err.message}`); })
     ]);
 
+    // Remove loading indicator
+    loadingIndicator.remove();
+
     // Update basic info
     document.getElementById('user-login').textContent = userInfo.login;
     document.getElementById('user-email').textContent = userInfo.email;
     document.getElementById('join-date').textContent = new Date(userInfo.createdAt).toLocaleDateString();
 
-    // // Calculate and display total XP
-    // const totalXp = xpData.reduce((sum, t) => sum + t.amount, 0);
-    // document.getElementById('total-xp').textContent = totalXp;
+    // Calculate and display total XP
+    const totalXp = xpData.reduce((sum, t) => sum + t.amount, 0);
+    document.getElementById('total-xp').textContent = totalXp;
 
-    // // Display audit ratio
-    // document.getElementById('audit-ratio').textContent = `${auditData.up}:${auditData.down}`;
+    // Display audit ratio
+    document.getElementById('audit-ratio').textContent = `${auditData.up}:${auditData.down}`;
 
-    // // Display projects completed
-    // document.getElementById('projects-completed').textContent = gradesData.length;
+    // Display projects completed
+    document.getElementById('projects-completed').textContent = gradesData.length;
 
-    // // Generate charts
-    // generateXpChart(xpData);
-    // generateAuditChart(auditData);
-    // generateGradesChart(gradesData);
+    // Generate charts
+    generateXpChart(xpData);
+    generateAuditChart(auditData);
+    generateGradesChart(gradesData);
 
   } catch (error) {
     console.error('Failed to load profile data:', error);
-    alert(`Error: ${error.message}`); // Show specific error
-    logout();
+    alert(`Error: ${error.message}`);
+    // Clear token and reset UI if there's an error
+    clearToken();
+    loginSection.style.display = 'block';
+    profileSection.style.display = 'none';
   }
 }
 
 // Handle login form submission
 loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const identifier = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
+  const identifier = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
 
-    console.log('Login form submitted');
-    console.log('Identifier:', identifier);
-    console.log('Password length:', password.length);
+  // Clear any previous errors
+  loginError.textContent = '';
 
-    // Clear any previous errors
-    loginError.textContent = '';
-
-    try {
-        console.log('Calling authenticateUser...');
-        const token = await authenticateUser(identifier, password);
-        console.log('Authentication successful, token:', token ? 'received' : 'undefined');
-        
-        if (!token) {
-            throw new Error('Authentication returned undefined token');
-        }
-        
-        storeToken(token);
-        await initApp();
-    } catch (error) {
-        console.error('Login error:', error);
-        loginError.textContent = error.message;
+  try {
+    const token = await authenticateUser(identifier, password);
+    
+    if (!token) {
+      throw new Error('Authentication failed. Please check your credentials.');
     }
+    
+    storeToken(token);
+    await initApp();
+  } catch (error) {
+    console.error('Login error:', error);
+    loginError.textContent = error.message;
+  }
 });
 
 // Handle logout
