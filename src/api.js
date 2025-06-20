@@ -37,9 +37,9 @@ async function fetchGraphQL(query, variables = {}) {
 // ✅ Get info for the currently logged-in user
 export async function getUserInfo() {
     const token = getToken();
-    if (!token) throw new Error("Not authenticated");
+    if (!token) throw new Error("You are not logged in. Please log in to continue");
     const payload = decodeJWT(token); // this gives you the user's login
-    if (!payload?.login) throw new Error("Invalid token");
+    if (!payload?.login) throw new Error("Failed to read user info from token. Please log in again");
     const login = payload.login;
 
     const query = `
@@ -63,9 +63,9 @@ export async function getUserInfo() {
 // ✅ Get XP transactions for the current user
 export async function getXpTransactions() {
     const token = getToken();
-    if (!token) throw new Error("Not authenticated");
+    if (!token) throw new Error("You are not logged in. Please log in to continue");
     const payload = decodeJWT(token); // this gives you the user's login
-    if (!payload?.login) throw new Error("Invalid token");
+    if (!payload?.login) throw new Error("Failed to read user info from token. Please log in again");
     const login = payload.login;
 
 
@@ -94,9 +94,9 @@ export async function getXpTransactions() {
 // ✅ Get audit ratio for the current user
 export async function getAuditRatio() {
     const token = getToken();
-    if (!token) throw new Error("Not authenticated");
+    if (!token) throw new Error("You are not logged in. Please log in to continue");
     const payload = decodeJWT(token); // this gives you the user's login
-    if (!payload?.login) throw new Error("Invalid token");
+    if (!payload?.login) throw new Error("Failed to read user info from token. Please log in again");
     const login = payload.login;
     ;
 
@@ -137,9 +137,9 @@ export async function getAuditRatio() {
 // ✅ Get project grades for the current user
 export async function getProjectGrades() {
     const token = getToken();
-    if (!token) throw new Error("Not authenticated");
+    if (!token) throw new Error("You are not logged in. Please log in to continue");
     const payload = decodeJWT(token); // this gives you the user's login
-    if (!payload?.login) throw new Error("Invalid token");
+    if (!payload?.login) throw new Error("Failed to read user info from token. Please log in again");
     const login = payload.login;
 
 
