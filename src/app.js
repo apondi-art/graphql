@@ -10,7 +10,8 @@ import {
   getUserInfo,
   getXpTransactions,
   getAuditRatio,
-  getProjectGrades
+  getProjectGrades,
+  formatXP
 } from './api.js';
 
 import { 
@@ -66,7 +67,7 @@ async function loadProfileData() {
 
     // Calculate and display total XP
     const totalXp = xpData.reduce((sum, t) => sum + t.amount, 0);
-    document.getElementById('total-xp').textContent = totalXp;
+    document.getElementById('total-xp').textContent = formatXP(totalXp);
 
     // Display audit ratio
     document.getElementById('audit-ratio').textContent = `${auditData.up}:${auditData.down}`;
