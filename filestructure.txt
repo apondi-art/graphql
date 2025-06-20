@@ -1,0 +1,8 @@
+|-- README.md
+|-- front-end-files
+    |-- style.css
+|-- index.html
+|-- src
+    |-- api.js
+    |-- app.js
+    |-- auth.js
