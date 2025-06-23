@@ -70,7 +70,7 @@ async function loadProfileData() {
     document.getElementById('total-xp').textContent = formatXP(totalXp);
 
     // Display audit ratio
-    document.getElementById('audit-ratio').textContent = `${auditData.up}:${auditData.down}`;
+    document.getElementById('audit-ratio').textContent = `${auditData.ratio}`;
 
     // Display projects completed
     document.getElementById('projects-completed').textContent = gradesData.length;

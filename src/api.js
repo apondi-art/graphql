@@ -100,12 +100,13 @@ export async function getXpTransactions() {
   const variables = { userId };
   const data = await fetchGraphQL(query, variables);
   const xpTransactions = data.transaction;
-const onlyProjects = xpTransactions.filter(entry => entry.object?.type === "project");
-return onlyProjects;
+  const onlyProjects = xpTransactions.filter(entry => entry.object?.type === "project");
+  return onlyProjects;
 
 }
 
 // ✅ Get audit ratio for the current user
+// ✅ Get audit ratio for the current user (projects only, done/received)
 export async function getAuditRatio() {
   const token = getToken();
   if (!token) throw new Error("You are not logged in. Please log in to continue");
@@ -120,21 +121,31 @@ export async function getAuditRatio() {
       up: transaction_aggregate(
         where: {
           type: { _eq: "up" },
-          userId: { _eq: $userId }
+          userId: { _eq: $userId },
+          object: {
+            type: { _eq: "project" }
+          }
         }
       ) {
         aggregate {
-          count
+          sum {
+            amount
+          }
         }
       }
       down: transaction_aggregate(
         where: {
           type: { _eq: "down" },
-          userId: { _eq: $userId }
+          userId: { _eq: $userId },
+          object: {
+            type: { _eq: "project" }
+          }
         }
       ) {
         aggregate {
-          count
+          sum {
+            amount
+          }
         }
       }
     }
@@ -143,11 +154,19 @@ export async function getAuditRatio() {
   const variables = { userId };
   const data = await fetchGraphQL(query, variables);
 
+  const upAmount = data.up.aggregate.sum.amount || 0;
+  const downAmount = data.down.aggregate.sum.amount || 0;
+
+  // Calculate ratio: audits given / audits received
+  const ratio = downAmount > 0 ? upAmount / downAmount : upAmount > 0 ? Infinity : 0;
+
   return {
-    up: data.up.aggregate.count,
-    down: data.down.aggregate.count
+    up: upAmount,
+    down: downAmount,
+    ratio: parseFloat(ratio.toFixed(1))
   };
 }
+
 
 // ✅ Get project grades for the current user
 export async function getProjectGrades() {
