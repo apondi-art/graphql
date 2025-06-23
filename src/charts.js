@@ -253,124 +253,134 @@ export function generateAuditChart(auditData, containerId = 'audit-chart') {
   container.appendChild(svg);
 }
 
-
-
-// Generate project grades bar chart
 export function generateGradesChart(gradesData, containerId = 'grades-chart') {
   const container = document.getElementById(containerId);
   if (!container) return;
-  
+
   container.innerHTML = '';
-  
+
   if (gradesData.length === 0) {
     container.innerHTML = '<p>No project grades data available</p>';
     return;
   }
-  
-  // Chart dimensions
+
+  // 🧹 Step 1: Remove duplicate project names (use last grade)
+  const uniqueGrades = {};
+  gradesData.forEach(entry => {
+    const name = entry.object?.name;
+    if (name) uniqueGrades[name] = entry; // overwrite to keep the latest
+  });
+
+  const cleanedData = Object.values(uniqueGrades);
+
+  // 📏 Chart dimensions
   const width = container.clientWidth;
   const height = 400;
-  const margin = { top: 30, right: 30, bottom: 70, left: 60 };
+  const margin = { top: 30, right: 30, bottom: 80, left: 60 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
-  
-  // Create SVG
+
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('width', '100%');
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
   svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-  
-  // Create group for chart area
+
   const chartGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   chartGroup.setAttribute('transform', `translate(${margin.left},${margin.top})`);
   svg.appendChild(chartGroup);
-  
-  // Calculate scales
-  const barWidth = innerWidth / gradesData.length;
-  const maxGrade = Math.max(...gradesData.map(g => g.grade));
-  
+
+  const barPadding = 5;
+  const barWidth = innerWidth / cleanedData.length - barPadding;
+  const maxGrade = Math.max(...cleanedData.map(g => g.grade));
+
   const yScale = (value) => {
     return innerHeight - (value / maxGrade) * innerHeight;
   };
-  
-  // Create bars
-  gradesData.forEach((grade, i) => {
+
+  // 📊 Create bars
+  cleanedData.forEach((grade, i) => {
     const barHeight = innerHeight - yScale(grade.grade);
-    const x = i * barWidth;
+    const x = i * (barWidth + barPadding);
     const y = yScale(grade.grade);
-    
+
     const bar = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     bar.setAttribute('x', x);
     bar.setAttribute('y', y);
-    bar.setAttribute('width', barWidth - 2);
+    bar.setAttribute('width', barWidth);
     bar.setAttribute('height', barHeight);
-    bar.setAttribute('fill', grade.grade >= 50 ? '#4c9f70' : '#e74c3c');
+    bar.setAttribute('fill', grade.grade >= 0.45 ? '#4c9f70' : '#e74c3c');
+    bar.style.cursor = 'pointer';
     chartGroup.appendChild(bar);
-    
-    // Add grade label
+
+    // 🧼 Tooltip on hover
+    bar.addEventListener('mouseover', () => {
+      const tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      tooltip.setAttribute('x', x + barWidth / 2);
+      tooltip.setAttribute('y', y - 10);
+      tooltip.setAttribute('text-anchor', 'middle');
+      tooltip.setAttribute('font-size', '12');
+      tooltip.setAttribute('fill', '#333');
+      tooltip.setAttribute('class', 'tooltip');
+      tooltip.textContent = grade.grade.toFixed(2);
+      chartGroup.appendChild(tooltip);
+    });
+
+    bar.addEventListener('mouseout', () => {
+      chartGroup.querySelectorAll('.tooltip').forEach(t => t.remove());
+    });
+
+    // 🏷️ Project label
+    const name = grade.object?.name || 'Unknown';
     const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     label.setAttribute('x', x + barWidth / 2);
-    label.setAttribute('y', y - 5);
+    label.setAttribute('y', innerHeight + 15);
     label.setAttribute('text-anchor', 'middle');
-    label.setAttribute('font-size', '12');
-    label.textContent = grade.grade;
+    label.setAttribute('font-size', '10');
+    label.setAttribute('transform', `rotate(45, ${x + barWidth / 2}, ${innerHeight + 15})`);
+    label.textContent = name.length > 12 ? name.slice(0, 10) + '…' : name;
     chartGroup.appendChild(label);
-    
-    // Add project label
-    const date = new Date(grade.createdAt);
-    const projectLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    projectLabel.setAttribute('x', x + barWidth / 2);
-    projectLabel.setAttribute('y', innerHeight + 15);
-    projectLabel.setAttribute('text-anchor', 'middle');
-    projectLabel.setAttribute('font-size', '10');
-    projectLabel.setAttribute('transform', `rotate(45, ${x + barWidth / 2}, ${innerHeight + 15})`);
-    projectLabel.textContent = date.toISOString().split('T')[0];
-    chartGroup.appendChild(projectLabel);
   });
-  
-  // Add X axis
+
+  // 🧭 X Axis
   const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
   xAxis.setAttribute('x1', '0');
   xAxis.setAttribute('y1', innerHeight);
   xAxis.setAttribute('x2', innerWidth);
   xAxis.setAttribute('y2', innerHeight);
   xAxis.setAttribute('stroke', '#333');
-  xAxis.setAttribute('stroke-width', '1');
   chartGroup.appendChild(xAxis);
-  
-  // Add Y axis
+
+  // 📏 Y Axis
   const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
   yAxis.setAttribute('x1', '0');
   yAxis.setAttribute('y1', '0');
   yAxis.setAttribute('x2', '0');
   yAxis.setAttribute('y2', innerHeight);
   yAxis.setAttribute('stroke', '#333');
-  yAxis.setAttribute('stroke-width', '1');
   chartGroup.appendChild(yAxis);
-  
-  // Add Y axis labels
-  for (let i = 0; i <= maxGrade; i += 20) {
+
+  // 🔢 Y Ticks
+  for (let i = 0; i <= maxGrade; i += 0.5) {
     const y = yScale(i);
-    
+
     const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     tick.setAttribute('x1', '0');
     tick.setAttribute('y1', y);
     tick.setAttribute('x2', '-5');
     tick.setAttribute('y2', y);
     tick.setAttribute('stroke', '#333');
-    tick.setAttribute('stroke-width', '1');
     chartGroup.appendChild(tick);
-    
+
     const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     label.setAttribute('x', '-10');
     label.setAttribute('y', y + 4);
     label.setAttribute('text-anchor', 'end');
     label.setAttribute('font-size', '10');
-    label.textContent = i;
+    label.textContent = i.toFixed(1);
     chartGroup.appendChild(label);
   }
-  
-  // Add chart title
+
+  // 🏆 Title
   const title = document.createElementNS('http://www.w3.org/2000/svg', 'text');
   title.setAttribute('x', innerWidth / 2);
   title.setAttribute('y', -10);
@@ -379,6 +389,7 @@ export function generateGradesChart(gradesData, containerId = 'grades-chart') {
   title.setAttribute('font-weight', 'bold');
   title.textContent = 'Project Grades';
   chartGroup.appendChild(title);
-  
+
   container.appendChild(svg);
 }
+
