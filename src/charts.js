@@ -152,113 +152,108 @@ export function generateXpChart(xpData, containerId = 'xp-chart') {
 export function generateAuditChart(auditData, containerId = 'audit-chart') {
   const container = document.getElementById(containerId);
   if (!container) return;
-  
+
   container.innerHTML = '';
-  
-  if (!auditData || auditData.up === 0 && auditData.down === 0) {
+
+  if (!auditData || (auditData.up === 0 && auditData.down === 0)) {
     container.innerHTML = '<p>No audit data available</p>';
     return;
   }
-  
-  // Chart dimensions
+
   const width = container.clientWidth;
   const height = 400;
   const radius = Math.min(width, height) / 2 - 40;
-  
-  // Create SVG
+
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('width', '100%');
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
   svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-  
-  // Center the pie chart
+
   const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   g.setAttribute('transform', `translate(${width / 2},${height / 2})`);
   svg.appendChild(g);
-  
-  // Calculate angles
+
   const total = auditData.up + auditData.down;
   const upPercent = auditData.up / total;
   const downPercent = auditData.down / total;
-  
-  // Create pie slices
+
+  const upAngle = 360 * upPercent;
+
   function createSlice(startAngle, endAngle, color) {
     const startRad = (startAngle - 90) * Math.PI / 180;
     const endRad = (endAngle - 90) * Math.PI / 180;
-    
+
     const x1 = radius * Math.cos(startRad);
     const y1 = radius * Math.sin(startRad);
     const x2 = radius * Math.cos(endRad);
     const y2 = radius * Math.sin(endRad);
-    
+
     const largeArcFlag = endAngle - startAngle <= 180 ? 0 : 1;
-    
+
     const pathData = [
       `M 0 0`,
       `L ${x1} ${y1}`,
       `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
       'Z'
     ].join(' ');
-    
+
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', pathData);
     path.setAttribute('fill', color);
     path.setAttribute('stroke', '#fff');
     path.setAttribute('stroke-width', '2');
-    
+
     return path;
   }
-  
-  // Up votes slice
-  const upAngle = 360 * upPercent;
-  g.appendChild(createSlice(0, upAngle, '#4c9f70'));
-  
-  // Down votes slice
-  g.appendChild(createSlice(upAngle, 360, '#e74c3c'));
-  
-  // Add center text
-  const centerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  centerText.setAttribute('text-anchor', 'middle');
-  centerText.setAttribute('font-size', '16');
-  centerText.setAttribute('font-weight', 'bold');
-  centerText.textContent = `${upPercent.toFixed(2)}:${downPercent.toFixed(2)}`;
-  g.appendChild(centerText);
-  
-  // Add legend
-  const legendY = height / 2 - 30;
-  
-  // Up legend
-  const upLegend = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  upLegend.setAttribute('x', -width / 4);
-  upLegend.setAttribute('y', legendY);
-  upLegend.setAttribute('text-anchor', 'middle');
-  upLegend.setAttribute('fill', '#4c9f70');
-  upLegend.setAttribute('font-size', '14');
-  upLegend.textContent = `Up: ${auditData.up}`;
-  svg.appendChild(upLegend);
-  
-  // Down legend
-  const downLegend = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  downLegend.setAttribute('x', width / 4);
-  downLegend.setAttribute('y', legendY);
-  downLegend.setAttribute('text-anchor', 'middle');
-  downLegend.setAttribute('fill', '#e74c3c');
-  downLegend.setAttribute('font-size', '14');
-  downLegend.textContent = `Down: ${auditData.down}`;
-  svg.appendChild(downLegend);
-  
-  // Add title
+
+  // Draw slices
+  g.appendChild(createSlice(0, upAngle, '#4c9f70'));         // Green for Up
+  g.appendChild(createSlice(upAngle, 360, '#e74c3c'));       // Red for Down
+
+  // Add "Up" percentage label inside green slice
+  const upLabelAngle = upAngle / 2 - 90; // middle of Up slice
+  const upX = (radius / 1.5) * Math.cos(upLabelAngle * Math.PI / 180);
+  const upY = (radius / 1.5) * Math.sin(upLabelAngle * Math.PI / 180);
+
+  const upText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  upText.setAttribute('x', upX);
+  upText.setAttribute('y', upY);
+  upText.setAttribute('text-anchor', 'middle');
+  upText.setAttribute('font-size', '16');
+  upText.setAttribute('font-weight', 'bold');
+  upText.setAttribute('fill', 'white');
+  upText.textContent = `Up: ${(upPercent * 100).toFixed(0)}%`;
+  g.appendChild(upText);
+
+  // Add "Down" percentage label inside red slice
+  const downLabelAngle = upAngle + (360 - upAngle) / 2 - 90;
+  const downX = (radius / 1.5) * Math.cos(downLabelAngle * Math.PI / 180);
+  const downY = (radius / 1.5) * Math.sin(downLabelAngle * Math.PI / 180);
+
+  const downText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  downText.setAttribute('x', downX);
+  downText.setAttribute('y', downY);
+  downText.setAttribute('text-anchor', 'middle');
+  downText.setAttribute('font-size', '16');
+  downText.setAttribute('font-weight', 'bold');
+  downText.setAttribute('fill', 'white');
+  downText.textContent = `Down: ${(downPercent * 100).toFixed(0)}%`;
+  g.appendChild(downText);
+
+  // Add title on top
   const title = document.createElementNS('http://www.w3.org/2000/svg', 'text');
   title.setAttribute('x', width / 2);
   title.setAttribute('y', 30);
   title.setAttribute('text-anchor', 'middle');
   title.setAttribute('font-size', '16');
   title.setAttribute('font-weight', 'bold');
-  title.textContent = 'Audit Ratio (Up:Down)';
+  title.textContent = 'Audit Ratio (Up/Down)';
   svg.appendChild(title);
-  
+
   container.appendChild(svg);
 }
+
+
 
 // Generate project grades bar chart
 export function generateGradesChart(gradesData, containerId = 'grades-chart') {
