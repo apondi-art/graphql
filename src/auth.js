@@ -1,5 +1,5 @@
 
-// auth.js - Debug version with better error handling
+
 
 //stores token in browser's local storage under 'jwtToken'
 function storeToken(token) {
@@ -14,7 +14,6 @@ function storeToken(token) {
 //retrieve JWT token
 function getToken() {
     const token = localStorage.getItem('jwtToken');
-    console.log('Retrieved token:', token ? 'Token exists' : 'No token found');
     return token;
 }
 
@@ -46,11 +45,11 @@ async function authenticateUser(identifier, password) {
 
         if (!response.ok) {
             // Get more details about the error
-            let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            let errorMessage = "Username or Password is incorrect";
             try {
                 const errorData = await response.text();
                 console.log('Error response body:', errorData);
-                errorMessage += ` - ${errorData}`;
+              
             } catch (e) {
                 console.log('Could not read error response body');
             }
