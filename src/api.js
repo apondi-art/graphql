@@ -226,10 +226,10 @@ export async function getObjectName(objectId) {
 }
 
 export function formatXP(bytes) {
-  if (bytes >= 1024 * 1024) {
-    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-  } else if (bytes >= 1024) {
-    return (bytes / 1024).toFixed(2) + ' kB';
+  if (bytes >= 1000 * 1000) {
+    return (bytes / (1000 * 1000)).toFixed(2) + ' MB';
+  } else if (bytes >= 1000) {
+    return (bytes / 1000).toFixed(2) + ' kB';
   } else {
     return bytes + ' B';
   }
