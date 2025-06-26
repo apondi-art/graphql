@@ -15,7 +15,7 @@ This project demonstrates proficiency in GraphQL query language by creating a pe
 
 ### Profile Information
 - **Basic User Data**: Username, email, and membership date
-- **Learning Statistics**: Total XP, audit ratio, and completed projects
+- **Learning Statistics**: Total XP based on transactions, audit ratio, and completed projects
 - **Progress Tracking**: Real-time data from the learning platform
 
 ### Interactive Data Visualization
@@ -94,9 +94,11 @@ The application queries the following GraphQL tables:
 
 1. **Clone the repository**
    ```bash
-   git clone [your-repository-url]
-   cd graphql-learning-profile
+   git clone https://github.com/apondi-art/graphql.git
+   cd graphql-learning
    ```
+ **Clone the repository**
+ Copy this to  your browser, https://apondi-art.github.io/graphql/.
 
 2. **Open the application**
    ```bash
@@ -109,7 +111,7 @@ The application queries the following GraphQL tables:
    ```
 
 3. **Access the application**
-   Open your browser and navigate to `http://localhost:8000`
+   Open your browser and navigate to `http://localhost:5500`
 
 ### Usage
 
@@ -204,9 +206,7 @@ graphql-learning-profile/
 
 This project can be hosted on various platforms:
 - **GitHub Pages**: Free static hosting
-- **Netlify**: Easy deployment with form handling
-- **Vercel**: Modern static site deployment
-- **Surge.sh**: Simple command-line deployment
+
 
 ## 🔒 Security Features
 
@@ -235,15 +235,5 @@ This project demonstrates understanding of:
 
 ## 📄 License
 
-This project is part of the Zone01 Kisumu curriculum and is intended for educational purposes.
+This project is part of the Zone01 Kisumu curriculum and is intended for educational purposes. [LICENSE](LICENSE)
 
-## 📞 Support
-
-For questions or issues:
-- Check the Zone01 Kisumu platform documentation
-- Review GraphQL documentation
-- Contact your learning facilitators
-
----
-
-**Built with ❤️ for Zone01 Kisumu learners**
