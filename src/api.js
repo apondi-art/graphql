@@ -83,6 +83,9 @@ export async function getXpTransactions() {
         where: {
           type: { _eq: "xp" },
           userId: { _eq: $userId }
+          object: {
+          type: {_eq: "project" }
+          }
         },
         order_by: { createdAt: asc }
       ) {
@@ -92,6 +95,7 @@ export async function getXpTransactions() {
         objectId
         object{
         type
+        name
         }
       }
     }
@@ -100,8 +104,8 @@ export async function getXpTransactions() {
   const variables = { userId };
   const data = await fetchGraphQL(query, variables);
   const xpTransactions = data.transaction;
-  const onlyProjects = xpTransactions.filter(entry => entry.object?.type === "project");
-  return onlyProjects;
+  return xpTransactions
+
 
 }
 
@@ -230,3 +234,57 @@ export function formatXP(bytes) {
     return bytes + ' B';
   }
 }
+
+
+// 🔧 Updated function to fetch only completed project XP
+export async function getCompletedProjectXP() {
+  const token = getToken();
+  if (!token) throw new Error("You are not logged in. Please log in to continue");
+
+  const payload = decodeJWT(token);
+  if (!payload?.sub) throw new Error("Failed to read user info from token. Please log in again");
+
+  const userId = parseInt(payload.sub);
+
+  const query = `
+    query($userId: Int!) {
+      transaction(
+        where: {
+          type: { _eq: "xp" },
+          userId: { _eq: $userId },
+          object: {
+            type: { _eq: "project" }
+          }
+        },
+        order_by: { createdAt: asc }
+      ) {
+        amount
+        createdAt
+        path
+        objectId
+        object {
+          type
+          name
+        }
+      }
+    }
+  `;
+
+  const variables = { userId };
+  const data = await fetchGraphQL(query, variables);
+
+  const excludedPaths = [
+    "/kisumu/module/piscine-ui/",
+    "/kisumu/module/piscine-ux/"
+  ];
+
+  const completedProjects = data.transaction
+    .filter(transaction => {
+      const isExcluded = excludedPaths.some(prefix => transaction.path?.startsWith(prefix));
+      return !isExcluded && transaction.object?.type === 'project' && transaction.amount > 0;
+    })
+    .sort((a, b) => b.amount - a.amount); // 🔽 Sort by XP descending
+
+  return completedProjects;
+}
+
