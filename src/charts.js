@@ -73,7 +73,7 @@ export function generateXpChart(xpData, containerId = 'xp-chart') {
   path.style.filter = 'drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3))';
   chartGroup.appendChild(path);
 
-  // Add dots
+  // Add dots with reduced size
   dates.forEach((date, i) => {
     const cx = xScale(date);
     const cy = yScale(cumulativeXp[i]);
@@ -81,33 +81,52 @@ export function generateXpChart(xpData, containerId = 'xp-chart') {
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle.setAttribute('cx', cx);
     circle.setAttribute('cy', cy);
-    circle.setAttribute('r', '6');
+    circle.setAttribute('r', '4'); // Reduced from 6 to 4
     circle.setAttribute('fill', '#48bb78');
     circle.setAttribute('stroke', '#ffffff');
-    circle.setAttribute('stroke-width', '2');
+    circle.setAttribute('stroke-width', '1.5'); // Reduced from 2 to 1.5
     circle.style.filter = 'drop-shadow(0 2px 4px rgba(72, 187, 120, 0.3))';
     circle.style.cursor = 'pointer';
     
     // Add hover effect
     circle.addEventListener('mouseenter', () => {
-      circle.setAttribute('r', '8');
+      circle.setAttribute('r', '6'); // Slightly larger on hover (from 8 to 6)
       circle.setAttribute('fill', '#38a169');
+      
+      // Show tooltip with KBs format
+      const tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      tooltip.setAttribute('x', cx);
+      tooltip.setAttribute('y', cy - 10);
+      tooltip.setAttribute('text-anchor', 'middle');
+      tooltip.setAttribute('font-size', '12');
+      tooltip.setAttribute('font-weight', '600');
+      tooltip.setAttribute('fill', '#2d3748');
+      tooltip.setAttribute('class', 'xp-tooltip');
+      tooltip.textContent = formatbyKbs(cumulativeXp[i]);
+      chartGroup.appendChild(tooltip);
     });
+    
     circle.addEventListener('mouseleave', () => {
-      circle.setAttribute('r', '6');
+      circle.setAttribute('r', '4'); // Back to original size
       circle.setAttribute('fill', '#48bb78');
+      
+      // Remove tooltip
+      const tooltip = chartGroup.querySelector('.xp-tooltip');
+      if (tooltip) {
+        chartGroup.removeChild(tooltip);
+      }
     });
     
     chartGroup.appendChild(circle);
 
     const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-    title.textContent = `${date.toISOString().split('T')[0]}: ${cumulativeXp[i]} XP`;
+    title.textContent = `${date.toISOString().split('T')[0]}: ${formatbyKbs(cumulativeXp[i])}`;
     circle.appendChild(title);
   });
 
   // X-axis
   const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  xAxis.setAttribute('x1', 0);
+  xAxis.setAttribute('x1', '0');
   xAxis.setAttribute('y1', innerHeight);
   xAxis.setAttribute('x2', innerWidth);
   xAxis.setAttribute('y2', innerHeight);
@@ -117,9 +136,9 @@ export function generateXpChart(xpData, containerId = 'xp-chart') {
 
   // Y-axis
   const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  yAxis.setAttribute('x1', 0);
-  yAxis.setAttribute('y1', 0);
-  yAxis.setAttribute('x2', 0);
+  yAxis.setAttribute('x1', '0');
+  yAxis.setAttribute('y1', '0');
+  yAxis.setAttribute('x2', '0');
   yAxis.setAttribute('y2', innerHeight);
   yAxis.setAttribute('stroke', '#e2e8f0');
   yAxis.setAttribute('stroke-width', '2');
