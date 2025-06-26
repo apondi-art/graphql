@@ -1,6 +1,5 @@
 import {
   storeToken,
-  getToken,
   clearToken,
   authenticateUser,
   isAuthenticated
@@ -11,7 +10,8 @@ import {
   getXpTransactions,
   getAuditRatio,
   getProjectGrades,
-  formatXP
+  formatXP,
+  getCompletedProjectXP
 } from './api.js';
 
 import { 
@@ -50,12 +50,13 @@ async function loadProfileData() {
     loadingIndicator.textContent = 'Loading profile data...';
     profileSection.prepend(loadingIndicator);
 
-    const [userInfo, xpData, auditData, gradesData] = await Promise.all([
-      getUserInfo().catch(err => { throw new Error(`User info: ${err.message}`); }),
-      getXpTransactions().catch(err => { throw new Error(`XP data: ${err.message}`); }),
-      getAuditRatio().catch(err => { throw new Error(`Audit data: ${err.message}`); }),
-      getProjectGrades().catch(err => { throw new Error(`Grades data: ${err.message}`); })
-    ]);
+   const [userInfo, xpData, auditData, gradesData, projectXpData] = await Promise.all([
+  getUserInfo().catch(err => { throw new Error(`User info: ${err.message}`); }),
+  getXpTransactions().catch(err => { throw new Error(`XP data: ${err.message}`); }),
+  getAuditRatio().catch(err => { throw new Error(`Audit data: ${err.message}`); }),
+  getProjectGrades().catch(err => { throw new Error(`Grades data: ${err.message}`); }),
+  getCompletedProjectXP().catch(err => { throw new Error(`Project XP data: ${err.message}`); }) // Add this line
+]);
 
     // Remove loading indicator
     loadingIndicator.remove();
@@ -78,7 +79,7 @@ async function loadProfileData() {
     // Generate charts
     generateXpChart(xpData);
     generateAuditChart(auditData);
-    generateGradesChart(gradesData);
+    generateGradesChart(projectXpData);
 
   } catch (error) {
     console.error('Failed to load profile data:', error);
